@@ -26,9 +26,18 @@ mem.initializer = ir.Constant(TAPE_TY, None)
 putchar = ir.Function(module, ir.FunctionType(INT32, [INT32]), name="putchar")
 getchar = ir.Function(module, ir.FunctionType(INT32, []),     name="getchar")
 
-# printf("%d\n", ...)
+# printf("%d", ...)
 printf_ty = ir.FunctionType(INT32, [ir.PointerType(INT8)], var_arg=True)
 printf    = ir.Function(module, printf_ty, name="printf")
+
+# global format string for integer output
+fmt_str = "%d\0"
+_fmt_const = ir.Constant(ir.ArrayType(INT8, len(fmt_str)),
+                         bytearray(fmt_str.encode("utf8")))
+fmt_int = ir.GlobalVariable(module, _fmt_const.type, name="fmt_int")
+fmt_int.linkage = "internal"
+fmt_int.global_constant = True
+fmt_int.initializer = _fmt_const
 
 class CodeGen:
     """Generate LLVM IR whose semantics mirrors the Python Interpreter exactly."""
@@ -130,14 +139,7 @@ class CodeGen:
             self.builder.call(putchar, [val32])
         else:
             # printf("%d", val)
-            fmt = "%d\0"
-            c_fmt = ir.Constant(ir.ArrayType(ir.IntType(8), len(fmt)),
-                                bytearray(fmt.encode("utf8")))
-            global_fmt = ir.GlobalVariable(module, c_fmt.type, name="fmt_int")
-            global_fmt.linkage = 'internal'
-            global_fmt.global_constant = True
-            global_fmt.initializer = c_fmt
-            fmt_ptr = self.builder.bitcast(global_fmt, ir.PointerType(ir.IntType(8)))
+            fmt_ptr = self.builder.bitcast(fmt_int, ir.PointerType(INT8))
             self.builder.call(printf, [fmt_ptr, val32])
 
     def visit_Keyword(self, node: Keyword):   # not used yet
