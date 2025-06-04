@@ -64,12 +64,33 @@ class Output(ASTNode):
         return self.token.count('ㅋ') - 1
 
 @dataclass
+class Goto(ASTNode):
+    token: str
+
+    @property
+    def addr(self):
+        return self.token.count('ㅋ')
+    
+    @property
+    def dir(self):
+        return self.token.count('에잇')
+
+@dataclass
 class EOL(ASTNode):
     pass
 
 @dataclass
 class Program(ASTNode):
     statements: List[ASTNode]
+
+@dataclass
+class Condition(ASTNode):
+    left_stmt: ASTNode  # Statement to execute if condition is true
+    right_stmt: ASTNode  # Statement that produces the condition value
+
+    def __init__(self, left_stmt, right_stmt):
+        self.left_stmt = left_stmt
+        self.right_stmt = right_stmt
 
 class Parser:
     def __init__(self, tokens):
@@ -122,5 +143,16 @@ class Parser:
         if tok_type == TokenType.EOL:
             _, _ = self.advance()
             return EOL()
+        if tok_type == TokenType.GOTO:
+            _, goto = self.advance()
+            return Goto(token=goto)
+        if tok_type == TokenType.CONDITION:
+            # Consume the condition token
+            self.advance()
+            # Parse the left statement (to execute if condition is true)
+            left_stmt = self.parse_statement()
+            # Parse the right statement (condition value)
+            right_stmt = self.parse_statement()
+            return Condition(left_stmt, right_stmt)
         
         raise SyntaxError(f"Unknown statement start: {tok_type} ('{tok_val}')")

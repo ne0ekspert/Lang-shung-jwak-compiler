@@ -22,7 +22,7 @@ TOKEN_SPEC = [
     (TokenType.INPUT,       r'순수ㅋ*따+잇ㅋ*'),
     (TokenType.OUTPUT_CHAR, r'비비ㅋ* *따+잇ㅋ*'),
     (TokenType.OUTPUT_VAL,  r'비비ㅋ* *보호막ㅋ*따+잇ㅋ*'),
-    (TokenType.GOTO,        r'에잇ㅋ*'),
+    (TokenType.GOTO,        r'(에잇){1,2}ㅋ*'),
     (TokenType.CONDITION,   r'하는재미'),
     (TokenType.EOL,         r'\n+'),
 ]
